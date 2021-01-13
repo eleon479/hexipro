@@ -47,10 +47,20 @@
     #info-right {
       float: right;
     }
+    
+    #signals {
+      float: left;
+    }
 
     #controls {
+      float: right;
       text-align: center;
     }
+    
+    ul {
+      list-style-type: none;
+    }
+    
   </style>
 </head>
 
@@ -66,19 +76,73 @@
       </p>
     </div>
     <div id="info-right">
+      <div id="signals">
+        <label for="username">User</label> <input type="text" id="username" name="username">
+        <label for="message">Message</label> <input type="text" id="message" name="message">
+        <button id="send" type="button">Send Message</button>
+      </div>
       <div id="controls">
         <button class="end-attack control" id="endAttack">End Attack</button>
         <button class="end-turn control" id="endTurn">End Turn</button>
       </div>
     </div>
     <canvas id="canvas" width="1000" height="700"></canvas>
-    
+    <ul id="messageList"></ul>
   </div>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.2/signalr.min.js" integrity="sha512-Ss3Q9gcwACmPpK77dhMVex9Fe2E2aHEXXCvS4w8heJln9aX0XWJB4atN6sB9R1ykjOen4Aj0TylV9wtxiXdR4g==" crossorigin="anonymous"></script>
+<!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.2/signalr.min.js" integrity="sha512-Ss3Q9gcwACmPpK77dhMVex9Fe2E2aHEXXCvS4w8heJln9aX0XWJB4atN6sB9R1ykjOen4Aj0TylV9wtxiXdR4g==" crossorigin="anonymous"></script>-->
+<!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.2/signalr.js" integrity="sha512-e1T56eW9d9boBAtzV3lvoDip3g9j3V/kJPscBH61//WkVKfbAJtzDd0LVeNDJWj6quyTi4Bw67PutCVsP4iJIQ==" crossorigin="anonymous"></script>-->
+  <script src="lib/signalr.js"></script>
   <script src="js/map.js"></script>
   <script src="js/game.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const connection = new signalR.HubConnectionBuilder()
+              .withUrl('https://localhost:5001/game')
+              .configureLogging(signalR.LogLevel.Information)
+              .build();
+      
+      connection.on("ReceiveMessage", (user, message) => {
+        
+        // @TODO: game client updateState(...)
+        
+        const li = document.createElement('li');
+        li.textContent = `${user} > ${message}`;
+        document.getElementById('messageList').appendChild(li);
+      });
+
+      document.getElementById("send").addEventListener("click", async () => {
+        
+        // @TODO: game client sendMove(...)
+        
+        const user = document.getElementById("username").value;
+        const message = document.getElementById("message").value;
+        
+        try {
+          await connection.invoke("SendMessage", user, message);
+        } catch (err) {
+          console.error(err);
+        }
+      });
+      
+      async function start() {
+        try {
+          await connection.start();
+          console.info('SignalR Connected.');
+        } catch (err) {
+          console.log(err);
+          setTimeout(start, 5000);
+        }
+      }
+      
+      connection.onclose(start);
+      start();
+      
+    });
+  </script>
+
 </body>
 
 </html>
