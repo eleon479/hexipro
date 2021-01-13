@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Hexipro</title>
+  <link rel="stylesheet" href="css/game.css">
+  <style>
+
+    h1 {
+      margin-bottom: 0;
+      /* padding: 0;
+      margin: 0; */
+    }
+
+    #hexipro {
+      text-align: center;
+    }
+
+    #canvas {
+      background-color: #0d0d0d;
+      border: 0;
+      border-radius: 10px;
+    }
+
+    #player {
+      color: var(--hexipro-green);
+    }
+
+    #stage {
+      color: var(--hexipro-green);
+    }
+
+    #power {
+      color: var(--hexipro-violet)
+    }
+
+    #info {
+
+    }
+
+    #info-left {
+      float: left;
+      text-align: left;
+    }
+
+    #info-right {
+      float: right;
+    }
+
+    #controls {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Hexipro</h1>
+  <hr class="rainbow-divider">
+  <div id="hexipro">
+    <div id="info-left">
+      <p>
+          Player: <span id="player">PLAYER</span><br>
+          Stage: <span id="stage">STAGE</span><br>
+          Power: <span id="power">POWER</span>
+      </p>
+    </div>
+    <div id="info-right">
+      <div id="controls">
+        <button class="end-attack control" id="endAttack">End Attack</button>
+        <button class="end-turn control" id="endTurn">End Turn</button>
+      </div>
+    </div>
+    <canvas id="canvas" width="1000" height="700"></canvas>
+    
+  </div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.2/signalr.min.js" integrity="sha512-Ss3Q9gcwACmPpK77dhMVex9Fe2E2aHEXXCvS4w8heJln9aX0XWJB4atN6sB9R1ykjOen4Aj0TylV9wtxiXdR4g==" crossorigin="anonymous"></script>
+  <script src="js/map.js"></script>
+  <script src="js/game.js"></script>
+</body>
+
+</html>
