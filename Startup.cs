@@ -5,6 +5,9 @@ using Hexipro.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,31 +43,43 @@ namespace Hexipro
                 // @TODO add some production-level exception handling before first deployment
                 app.UseDeveloperExceptionPage();
                 // app.UseExceptionHandler("/Error");
-                app.UseHsts();
+                // app.UseHsts();
             }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseRouting();
-            app.UseCors();
-            app.UseAuthorization();
             
+            app.UseCors();
+            
+            var forwardedHeadersOptions = new ForwardedHeadersOptions {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            };
+            forwardedHeadersOptions.KnownNetworks.Clear();
+            forwardedHeadersOptions.KnownProxies.Clear();
+            app.UseForwardedHeaders(forwardedHeadersOptions);
+
+            var rewriteOptions = new RewriteOptions().AddRedirectToHttps(308);
+            app.UseRewriter(rewriteOptions);
+
+            // app.UseHttpsRedirection();
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+            
+            app.UseRouting();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/", context =>
-                {
-                    //await context.Response.WriteAsync("Hello World!");
-                    context.Response.Redirect("index.html", false);
-                    return Task.CompletedTask;
-                }).WithDisplayName("Root to index.html redirect");
-
-                endpoints.MapDefaultControllerRoute();
-                
+                // @TODO fix some routing issues in development release
+                // endpoints.MapGet("/", context =>
+                // {
+                //     //await context.Response.WriteAsync("Hello World!");
+                //     context.Response.Redirect("index.html", true);
+                //     return Task.CompletedTask;
+                // }).WithDisplayName("Root to index.html redirect");
+                //
+                // endpoints.MapDefaultControllerRoute();
+                //
                 // GameHub mapping
                 endpoints.MapHub<GameHub>("/game");
             });
-            
-            
 
         }
 
