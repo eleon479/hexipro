@@ -1,0 +1,14 @@
+{
+  "name": "hexipro",
+  "version": "1.0.0",
+  "description": "hexi tile game!",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve",
+    "build": "echo This is a static template, there is no bundler or bundling involved!"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^11.2.0"
+  }
+}
