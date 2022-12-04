@@ -124,9 +124,71 @@ const HexSetup = [
   ]
 ];
 
+const HexSize2 = 50;
+const HexColumns2 = 8;
+const HexRows2 = 5;
+const HexSetup2 = [
+  [
+    { player: 'A', power: 2, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: 'B', power: 2, active: true }
+  ]
+]
+
 const gameConfig = [
-  HexSetup,
-  HexColumns,
-  HexRows,
-  HexSize
+  HexSetup2,
+  HexColumns2,
+  HexRows2,
+  HexSize2
 ];

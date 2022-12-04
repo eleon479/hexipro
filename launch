@@ -1,3 +1,0 @@
-#!/bin/bash
-dotnet run --launch-profile "Hexipro" & 
-open http://localhost:5000
