@@ -1,3 +1,5 @@
+mapConfig = map3;
+
 // canvas and rendering context setup
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
@@ -32,23 +34,39 @@ class Game {
 
         this.board = null;
     }
+	
+		// var gameController = new Game();
+		// gameController.config(...map1);
+		// gameController.start();
 
-    config = (tileSetup, columns, rows, size) => {
-        this.board = new Board(tileSetup, columns, rows, size);
+    config = ({size, columns, rows, tiles}) => {
+        this.board = new Board(tiles, columns, rows, size);
+			  this.board.build();
     };
 
     start = () => {
-        this.board.build();
         this.board.animate();
         this.updateCurrentPlayer('A');
         this.startAttackStage();
     };
 
+		reset = () => {
+			this.gameOver = false;
+			this.gameWinner = null;
+			this.currentPlayer = null;
+			this.currentStage = null;
+			this.availablePower = 0;
+			this.currentAttackNodeSelected = false;
+			this.currentAttackNodeColumn = null;
+			this.currentAttackNodeRow = null;
+			this.currentAttackNodePower = null;
+			this.board.restoreTiles();
+		}
+
     updateBoard = () => {
         this.board.animate();
     };
-
-    gameReset = () => {};
+	
     getNextPlayer = () => {
         return (this.currentPlayer === 'A') ? 'B' : 'A';
     };
@@ -74,8 +92,12 @@ class Game {
         // this.currentStage = 'allocate';
         this.updateCurrentStage('allocate');
 
-        // enable End Turn button
-        $('#endTurn').prop('disabled', false);
+        // disable End Turn button (until power is 0)
+        $('#endTurn').prop('disabled', true);
+
+				if (this.gameOver && this.gameWinner !== this.currentPlayer) {
+          this.endTurn();
+        }
     };
 
     startAttackStage = () => {
@@ -84,15 +106,12 @@ class Game {
         this.updateAvailablePower(0);
         this.updateCurrentStage('attack');
 
-        // experimental feature (not found in influence!)
-        // automatically detect when there's no more possible 
-        // moves and auto-end attack phase
-        /*if (!this.isAttackAvailable()) {
-          this.endAttack();
-        }*/
-
         // enable End Attack button
         $('#endAttack').prop('disabled', false);
+
+				if (this.gameOver && this.gameWinner !== this.currentPlayer) {
+          this.endAttack();
+        }
     };
 
     onTileClick = (col, row, power, player) => {
@@ -119,30 +138,21 @@ class Game {
                 this.board.gameTiles[col][row].power += 1;
 
                 this.updateAvailablePower(this.availablePower - 1);
-
-                // if (this.availablePower === 0) {
-                //   this.endTurn();
-                // }
+                if (this.availablePower === 0) {
+                  $('#endTurn').prop('disabled', false);
+									// this.endTurn();
+                }
 
             } else {
                 console.log('not enough troops?');
-            }
-
-
-
-
+						}
         } else {
-            // attack selection
-
-            if (this.currentAttackNodeColumn === col && this.currentAttackNodeRow === row) {
-                this.resetAttackTile();
-                return;
-            }
-
-            this.resetAttackTile();
-            if (power > 1) {
-                this.setAttackTile(col, row, power);
-            }
+					// attack selection
+					this.resetAttackTile();
+					
+					if (power > 1) {
+					   this.setAttackTile(col, row, power);
+					}
         }
 
     };
@@ -216,7 +226,7 @@ class Game {
                 pDen = 4;
             }
 
-            success = (Math.floor(Math.random()) * pDen) + 1 > pDen - pNum;
+            success = (Math.floor(Math.random()) * pDen) + 1 > (pDen - pNum);
         }
 
         /*
@@ -254,28 +264,43 @@ class Game {
         this.board.gameTiles[bc][br].power = remainB;
 
         this.resetAttackTile();
+			
         if (success) {
-            // tile takeover!
-            this.board.gameTiles[bc][br].player = this.currentPlayer;
+					// tile takeover!
+					this.board.gameTiles[bc][br].player = this.currentPlayer;
+					if (remainB > 1)
+						this.setAttackTile(bc, br, remainB);
+					
+					// check to see if player b still has tiles on board
+					// let enemyRemaining = 0;
+					// this.board.gameTiles.forEach(col => {
+						// col.forEach(tile => {
+							// if (tile.player === this.getNextPlayer()) {
+								// enemyRemaining += 1;
+							// }
+						// });
+					// });
 
-            // check to see if player b still has tiles on board
-            // ...
-
-            if (remainB > 1)
-                this.setAttackTile(bc, br, remainB);
-
+					if (!this.gameOver) {		
+						const isEnemyRemaining = this.board.gameTiles.some(col => {
+							return col.some(tile => tile.player === this.getNextPlayer());
+						});
+						
+						if(!isEnemyRemaining) {
+							this.updateGameWinner(this.currentPlayer);
+							this.endGame();
+						}
+					}
         }
 
-        if (!this.isAttackAvailable) {
+        if (!this.isAttackAvailable()) {
             this.endAttack();
         }
-
     };
 
     isAttackAvailable = () => {
         // calculate remaining attack tiles
         let validAttackTiles = [];
-
         this.board.gameTiles.forEach(col => {
             col.forEach(tile => {
 
@@ -347,11 +372,10 @@ class Game {
         return false;
     };
 
-    resetGame = () => {};
-
     endAttack = () => {
         // alert('attack ended');
-        this.isEndAttackButtonDisabled = true;
+       // this.isEndAttackButtonDisabled = true;
+			  $('#endAttack').prop('disabled', true );
         this.startAllocateStage();
     };
 
@@ -365,6 +389,11 @@ class Game {
 
         this.startAttackStage();
     };
+
+		endGame = () => {
+			// do end game logic here
+			this.gameOver = true;
+		}
 
     /* dynamic setters for the text/game info display */
 
@@ -383,14 +412,17 @@ class Game {
         $('#power').text(newPower);
     };
 
+		updateGameWinner = (winner) => {
+			this.gameWinner = winner;
+			$('#winner').text(`Player ${winner} has won!`);
+		}
+
 };
 
 // builds, maintains, and handles updates to the grid of tiles
 class Board {
     constructor(tileSetup, columns, rows, size) {
-
         this.gameTiles = [];
-
         this.tileSetup = tileSetup;
         this.columns = columns;
         this.rows = rows;
@@ -401,6 +433,14 @@ class Board {
         this.createTiles(this.tileSetup);
         // this.animate();
     };
+
+		restoreTiles = () => {
+			this.gameTiles.forEach(col => {
+				col.forEach(tile => {
+					tile.restoreBase();
+				})
+			})
+		}
 
     // turn the setup data from map.js into an array
     // of renderable / clickable HexagonTile objects 
@@ -462,6 +502,10 @@ class HexagonTile {
         this.hexagon = null;
         this.hasEventListener = false;
 
+			  this.basePlayer = player;
+			  this.basePower = power;
+			  this.baseActive = active;
+
         this.player = player;
         this.power = power;
         this.active = active;
@@ -469,6 +513,13 @@ class HexagonTile {
 
         this.attacking = false;
     }
+
+	  restoreBase = () => {
+			this.player = this.basePlayer;
+		  this.power = this.basePower;
+		  this.active = this.baseActive;
+			this.attacking = false;
+		}
 
     deselectAttack = () => {
         this.attacking = false;
@@ -513,8 +564,8 @@ class HexagonTile {
             playerLineColor = palette.light_teal;
             playerFillColor = palette.light_teal;
         } else if (player === 'B') {
-            playerLineColor = palette.dark_teal;
-            playerFillColor = palette.dark_teal;
+            playerLineColor = palette.red;
+            playerFillColor = palette.red;
         }
 
         if (this.attacking) {
@@ -566,13 +617,15 @@ class HexagonTile {
         }
     };
 
+		
+
     update = () => {
 
     };
 }
 
 var gameController = new Game();
-gameController.config(...gameConfig);
+gameController.config(mapConfig);
 gameController.start();
 
 $(document).ready(function() {
@@ -585,13 +638,19 @@ $(document).ready(function() {
     
     // event listeners
     $('#endAttack').click(function() {
-        $('#endAttack').prop('disabled', true);
-        gameController.endAttack();
+			$('#endAttack').prop('disabled', true);
+			gameController.endAttack();
     });
 
     $('#endTurn').click(function() {
-        $('#endTurn').prop('disabled', true);
-        gameController.endTurn();
+			$('#endTurn').prop('disabled', true);
+			gameController.endTurn();
     }).prop('disabled', true);
+
+		$('#resetGame').click(function() {
+			$('#winner').text('');
+			gameController.reset();
+			gameController.start();
+    });
 
 });

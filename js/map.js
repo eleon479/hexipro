@@ -6,14 +6,16 @@ const palette = {
   violet: '#C724B1',
   dark_teal: '#005151',
   light_teal: '#30CEBB',
+	red: '#DD5E89',
   white: '#FFFFFF',
   dark_gray: '#53565A'
 };
 
-const HexSize = 50;
-const HexColumns = 12;
-const HexRows = 7;
-const HexSetup = [
+const map1 = {
+	size: 50,
+	columns: 12,
+	rows: 7, 
+	tiles: [
   [
     { player: 'A', power: 2, active: true },
     { player: null, power: 0, active: true },
@@ -122,12 +124,14 @@ const HexSetup = [
     { player: null, power: 0, active: true },
     { player: 'B', power: 2, active: true }
   ]
-];
+]
+}
 
-const HexSize2 = 50;
-const HexColumns2 = 8;
-const HexRows2 = 5;
-const HexSetup2 = [
+const map2 = {
+	size: 50,
+	columns: 8,
+	rows: 5,
+	tiles: [
   [
     { player: 'A', power: 2, active: true },
     { player: null, power: 0, active: true },
@@ -185,10 +189,60 @@ const HexSetup2 = [
     { player: 'B', power: 2, active: true }
   ]
 ]
+}
 
-const gameConfig = [
-  HexSetup2,
-  HexColumns2,
-  HexRows2,
-  HexSize2
-];
+const map3 = {
+	size: 50,
+	columns: 6,
+	rows: 6,
+	tiles: [
+  [
+    { player: 'A', power: 2, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true }
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+  ],
+  [
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: null, power: 0, active: true },
+    { player: 'B', power: 2, active: true }
+  ]
+]
+}

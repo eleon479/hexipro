@@ -5,63 +5,6 @@
   <meta charset="UTF-8">
   <title>Hexipro</title>
   <link rel="stylesheet" href="css/game.css">
-  <style>
-
-    h1 {
-      margin-bottom: 0;
-      /* padding: 0;
-      margin: 0; */
-    }
-
-    #hexipro {
-      text-align: center;
-    }
-
-    #canvas {
-      background-color: #0d0d0d;
-      border: 0;
-      border-radius: 10px;
-    }
-
-    #player {
-      color: var(--hexipro-green);
-    }
-
-    #stage {
-      color: var(--hexipro-green);
-    }
-
-    #power {
-      color: var(--hexipro-violet)
-    }
-
-    #info {
-
-    }
-
-    #info-left {
-      float: left;
-      text-align: left;
-    }
-
-    #info-right {
-      float: right;
-    }
-    
-    #signals {
-      float: left;
-    }
-
-    #controls {
-      float: right;
-      text-align: center;
-    }
-    
-    ul {
-      list-style-type: none;
-    }
-    
-  </style>
 </head>
 
 <body>
@@ -80,7 +23,9 @@
         <button class="end-turn control" id="endTurn">End Turn</button>
       </div>
     </div>
-    <canvas id="canvas" width="1000" height="700"></canvas>
+    <canvas id="canvas" width="500" height="500"></canvas>
+	<h2 id="winner"></h2>
+		<button class="reset-game control" id="resetGame">Reset Game</button>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
   <script src="js/map.js"></script>

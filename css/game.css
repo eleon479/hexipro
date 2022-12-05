@@ -41,6 +41,7 @@
     background: var(--rainbow-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+		margin-bottom: 0;
     /* width:fit-content; */
   }
   
@@ -99,8 +100,56 @@ button:disabled {
 .end-turn {background-image: linear-gradient(to right, #2BC0E4 0%, #EAECC6 51%, #2BC0E4 100%)}
 .end-turn:hover { background-position: right center; }
 
-.gradient-button-3 {background-image: linear-gradient(to right, #7474BF 0%, #348AC7 51%, #7474BF 100%)}
-.gradient-button-3:hover { background-position: right center; }
+.reset-game {background-image: linear-gradient(to right, #7474BF 0%, #348AC7 51%, #7474BF 100%)}
+.reset-game:hover { background-position: right center; }
 
 .gradient-button-4 {background-image: linear-gradient(to right, #00d2ff 0%, #3a7bd5 51%, #00d2ff 100%)}
 .gradient-button-4:hover { background-position: right center; }
+
+#hexipro {
+	text-align: center;
+}
+
+#canvas {
+	background-color: #0d0d0d;
+	border: 0;
+	border-radius: 10px;
+}
+
+#player {
+	color: var(--hexipro-green);
+}
+
+#stage {
+	color: var(--hexipro-green);
+}
+
+#power {
+	color: var(--hexipro-violet)
+}
+
+#info {
+
+}
+
+#info-left {
+	float: left;
+	text-align: left;
+}
+
+#info-right {
+	float: right;
+}
+
+#signals {
+	float: left;
+}
+
+#controls {
+	float: right;
+	text-align: center;
+}
+
+ul {
+	list-style-type: none;
+}
