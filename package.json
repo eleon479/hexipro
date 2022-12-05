@@ -1,14 +1,26 @@
 {
   "name": "hexipro",
   "version": "1.0.0",
-  "description": "hexi tile game!",
+  "description": "A little hex-y tile game!",
   "main": "index.html",
   "scripts": {
     "start": "serve",
     "build": "echo This is a static template, there is no bundler or bundling involved!"
   },
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eleon479/hexipro.git"
+  },
+  "keywords": [
+    "game"
+  ],
+  "author": "Eddy Leon",
+  "license": "ISC",
   "devDependencies": {
     "serve": "^11.2.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/eleon479/hexipro/issues"
+  },
+  "homepage": "https://github.com/eleon479/hexipro#readme"
 }
