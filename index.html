@@ -1,35 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hexipro</title>
+    <link rel="stylesheet" href="css/game.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <title>Hexipro</title>
-  <link rel="stylesheet" href="css/game.css">
-</head>
-
-<body>
-  <h1>Hexipro</h1>
-  <hr class="rainbow-divider">
-  <div id="hexipro">
-    <div id="info-left">
-      <p>
-          Player: <span id="player">PLAYER</span><br>
-          Stage: <span id="stage">STAGE</span><br>
-          Power: <span id="power">POWER</span>
-      </p>
-  </div>
-      <div id="controls">
-        <button class="end-attack control" id="endAttack">End Attack</button>
-        <button class="end-turn control" id="endTurn">End Turn</button>
-      </div>
+  <body>
+    <div id="layout">
+      <header>
+        <div id="header-inner">
+          <div id="title"><h1>Hexipro</h1></div>
+          <div id="controls">
+            <div id="controls-inner">
+              <button class="end-attack control" id="endAttack">
+                End Attack
+              </button>
+              <button class="end-turn control" id="endTurn">End Turn</button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div id="divide-wrapper"></div>
+      <main>
+        <canvas id="canvas" width="800" height="600"></canvas>
+      </main>
     </div>
-    <canvas id="canvas" width="500" height="500"></canvas>
-	<h2 id="winner"></h2>
-		<button class="reset-game control" id="resetGame">Reset Game</button>
-  </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-  <script src="js/map.js"></script>
-  <script src="js/game.js"></script>
-</body>
 
+    <div id="details">
+      <!-- <div id=""> -->
+      <p>
+        Player: <span id="player">PLAYER</span><br />
+        Stage: <span id="stage">STAGE</span><br />
+        Power: <span id="power">POWER</span>
+      </p>
+      <h3 id="winner"></h3>
+      <button id="resetGame" class="reset-game control">Reset Game</button>
+      <!-- </div> -->
+    </div>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+      integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+      crossorigin="anonymous"
+    ></script>
+    <script src="js/map.js"></script>
+    <script src="js/game.js"></script>
+  </body>
 </html>

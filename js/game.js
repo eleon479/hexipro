@@ -1,235 +1,255 @@
-mapConfig = map3;
+mapConfig = map1;
 
 // canvas and rendering context setup
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+/**
+ * @todo Calculate needed canvas size (px) given (rows, cols, size)
+ * Create a canvas of that size programmatically here
+ *
+ * ex: horizontally: 1000px can fit 13 columns of 50px hexagons
+ *     vertically: 600px can fit 7 rows of 50px hexagons
+ */
 
 /* Hexipro local game instance controller */
 class Game {
-    constructor() {
+  constructor() {
+    // turn info
+    this.players = ["A", "B"];
+    this.stages = ["attack", "allocate"];
 
-        // turn info
-        this.players = ['A', 'B'];
-        this.stages = ['attack', 'allocate'];
+    // general game state
+    this.gameOver = false;
+    this.gameWinner = null;
 
-        // general game state
-        this.gameOver = false;
-        this.gameWinner = null;
+    this.currentPlayer = null;
+    this.currentStage = null;
 
-        this.currentPlayer = null;
-        this.currentStage = null;
+    // allocate stage state
+    this.availablePower = 0;
 
-        // allocate stage state
-        this.availablePower = 0;
+    // attack state state
+    this.currentAttackNodeSelected = false;
+    this.currentAttackNodeColumn = null;
+    this.currentAttackNodeRow = null;
+    this.currentAttackNodePower = null;
 
-        // attack state state
-        this.currentAttackNodeSelected = false;
-        this.currentAttackNodeColumn = null;
-        this.currentAttackNodeRow = null;
-        this.currentAttackNodePower = null;
+    // button state
+    this.isEndAttackButtonDisabled = false;
+    this.isEndTurnButtonDisabled = true;
 
-        // button state
-        this.isEndAttackButtonDisabled = false;
-        this.isEndTurnButtonDisabled = true;
+    this.board = null;
+  }
 
-        this.board = null;
+  // var gameController = new Game();
+  // gameController.config(...map1);
+  // gameController.start();
+
+  config = ({ size, columns, rows, tiles }) => {
+    this.board = new Board(tiles, columns, rows, size);
+    this.board.build();
+  };
+
+  start = () => {
+    this.board.animate();
+    this.updateCurrentPlayer("A");
+    this.startAttackStage();
+  };
+
+  reset = () => {
+    this.gameOver = false;
+    this.gameWinner = null;
+    this.currentPlayer = null;
+    this.currentStage = null;
+    this.availablePower = 0;
+    this.currentAttackNodeSelected = false;
+    this.currentAttackNodeColumn = null;
+    this.currentAttackNodeRow = null;
+    this.currentAttackNodePower = null;
+    this.board.restoreTiles();
+  };
+
+  updateBoard = () => {
+    this.board.animate();
+  };
+
+  getNextPlayer = () => {
+    return this.currentPlayer === "A" ? "B" : "A";
+  };
+
+  startAllocateStage = () => {
+    // clean up attack state
+    this.resetAttackTile(); /* PENDING */
+
+    // calculate new availablePower
+    let tempAvailablePower = 0;
+
+    this.board.gameTiles.forEach((col) => {
+      col.forEach((tile) => {
+        if (tile.player === this.currentPlayer) {
+          tempAvailablePower++;
+        }
+      });
+    });
+
+    // this.availablePower = tempAvailablePower;
+    this.updateAvailablePower(tempAvailablePower);
+    // this.currentStage = 'allocate';
+    this.updateCurrentStage("allocate");
+
+    // disable End Turn button (until power is 0)
+    $("#endTurn").prop("disabled", true);
+
+    if (this.gameOver && this.gameWinner !== this.currentPlayer) {
+      this.endTurn();
     }
-	
-		// var gameController = new Game();
-		// gameController.config(...map1);
-		// gameController.start();
+  };
 
-    config = ({size, columns, rows, tiles}) => {
-        this.board = new Board(tiles, columns, rows, size);
-			  this.board.build();
-    };
+  startAttackStage = () => {
+    // reset attack state
+    this.updateAvailablePower(0);
+    this.updateCurrentStage("attack");
 
-    start = () => {
-        this.board.animate();
-        this.updateCurrentPlayer('A');
-        this.startAttackStage();
-    };
+    // enable End Attack button
+    $("#endAttack").prop("disabled", false);
 
-		reset = () => {
-			this.gameOver = false;
-			this.gameWinner = null;
-			this.currentPlayer = null;
-			this.currentStage = null;
-			this.availablePower = 0;
-			this.currentAttackNodeSelected = false;
-			this.currentAttackNodeColumn = null;
-			this.currentAttackNodeRow = null;
-			this.currentAttackNodePower = null;
-			this.board.restoreTiles();
-		}
+    if (this.gameOver && this.gameWinner !== this.currentPlayer) {
+      this.endAttack();
+    }
+  };
 
-    updateBoard = () => {
-        this.board.animate();
-    };
-	
-    getNextPlayer = () => {
-        return (this.currentPlayer === 'A') ? 'B' : 'A';
-    };
+  onTileClick = (col, row, power, player) => {
+    console.log("tile click successfully dispatched to Game controller: ");
+    console.log(col, row, power, player);
 
-    startAllocateStage = () => {
+    if (this.currentPlayer === player) {
+      console.log("same team tile click");
+      this.onSameTeamTileClick(col, row, power);
+    } else {
+      console.log("enemy team tile click");
+      this.onEnemyTeamTileClick(col, row, power);
+    }
 
-        // clean up attack state
-        this.resetAttackTile(); /* PENDING */
+    // handle board rendering
+    this.updateBoard();
+  };
 
-        // calculate new availablePower
-        let tempAvailablePower = 0;
+  onSameTeamTileClick = (col, row, power) => {
+    if (this.currentStage === "allocate") {
+      // allocate selection
+      if (this.availablePower > 0) {
+        this.board.gameTiles[col][row].power += 1;
 
-        this.board.gameTiles.forEach(col => {
-            col.forEach(tile => {
-                if (tile.player === this.currentPlayer) {
-                    tempAvailablePower++;
-                }
-            });
-        });
-
-        // this.availablePower = tempAvailablePower;
-        this.updateAvailablePower(tempAvailablePower);
-        // this.currentStage = 'allocate';
-        this.updateCurrentStage('allocate');
-
-        // disable End Turn button (until power is 0)
-        $('#endTurn').prop('disabled', true);
-
-				if (this.gameOver && this.gameWinner !== this.currentPlayer) {
-          this.endTurn();
+        this.updateAvailablePower(this.availablePower - 1);
+        if (this.availablePower === 0) {
+          $("#endTurn").prop("disabled", false);
+          // this.endTurn();
         }
-    };
+      } else {
+        console.log("not enough troops?");
+      }
+    } else {
+      // attack selection
+      this.resetAttackTile();
 
-    startAttackStage = () => {
+      if (power > 1) {
+        this.setAttackTile(col, row, power);
+      }
+    }
+  };
 
-        // reset attack state
-        this.updateAvailablePower(0);
-        this.updateCurrentStage('attack');
+  onEnemyTeamTileClick = (col, row, power) => {
+    console.log("enemy tile click");
 
-        // enable End Attack button
-        $('#endAttack').prop('disabled', false);
+    if (this.currentStage === "attack" && this.currentAttackNodeSelected) {
+      if (
+        this.adjacentTilesCoordinates(
+          this.currentAttackNodeColumn,
+          this.currentAttackNodeRow,
+          col,
+          row
+        )
+      ) {
+        this.attackTile(
+          this.currentAttackNodeColumn,
+          this.currentAttackNodeRow,
+          col,
+          row
+        );
+      }
+    }
+  };
 
-				if (this.gameOver && this.gameWinner !== this.currentPlayer) {
-          this.endAttack();
-        }
-    };
+  setAttackTile = (col, row, power) => {
+    this.currentAttackNodeSelected = true;
+    this.currentAttackNodeColumn = col;
+    this.currentAttackNodeRow = row;
+    this.currentAttackNodePower = power;
 
-    onTileClick = (col, row, power, player) => {
-        console.log('tile click successfully dispatched to Game controller: ');
-        console.log(col, row, power, player);
+    this.board.gameTiles[col][row].selectAttack();
+    console.log("attack node changed");
+  };
 
-        if (this.currentPlayer === player) {
-            console.log('same team tile click');
-            this.onSameTeamTileClick(col, row, power);
-        } else {
-            console.log('enemy team tile click');
-            this.onEnemyTeamTileClick(col, row, power);
-        }
+  resetAttackTile = () => {
+    if (
+      this.currentAttackNodeSelected &&
+      this.currentAttackNodeColumn != null &&
+      this.currentAttackNodeRow != null
+    ) {
+      this.board.gameTiles[this.currentAttackNodeColumn][
+        this.currentAttackNodeRow
+      ].deselectAttack();
+    }
+    this.currentAttackNodeSelected = false;
+    this.currentAttackNodeColumn = null;
+    this.currentAttackNodeRow = null;
+    this.currentAttackNodePower = null;
+  };
 
-        // handle board rendering
-        this.updateBoard();
-    };
+  attackTile(ac, ar, bc, br) {
+    let tileA = this.board.gameTiles[ac][ar];
+    let tileB = this.board.gameTiles[bc][br];
 
-    onSameTeamTileClick = (col, row, power) => {
+    const powerDiff = Math.abs(tileA.power - tileB.power);
+    let remainA = 0;
+    let remainB = 0;
+    let pNum = 1;
+    let pDen = 1;
 
-        if (this.currentStage === 'allocate') {
-            // allocate selection
-            if (this.availablePower > 0) {
-                this.board.gameTiles[col][row].power += 1;
+    let success;
+    if (powerDiff >= 2) {
+      if (tileA.power < tileB.power) {
+        remainA = 1;
+        remainB = tileB.power - tileA.power;
+        success = false;
+      } else {
+        remainA = 1;
+        remainB = tileB.power > 0 ? tileA.power - tileB.power : tileA.power - 1;
+        success = true;
+      }
+    } else {
+      remainA = 1;
+      remainB = 1;
 
-                this.updateAvailablePower(this.availablePower - 1);
-                if (this.availablePower === 0) {
-                  $('#endTurn').prop('disabled', false);
-									// this.endTurn();
-                }
+      pNum = 1;
+      pDen = 1;
 
-            } else {
-                console.log('not enough troops?');
-						}
-        } else {
-					// attack selection
-					this.resetAttackTile();
-					
-					if (power > 1) {
-					   this.setAttackTile(col, row, power);
-					}
-        }
+      if (tileA.power - tileB.power >= 1) {
+        pNum = 3;
+        pDen = 4;
+      } else if (tileA.power - tileB.power === 0) {
+        pNum = 1;
+        pDen = 2;
+      } else {
+        pNum = 1;
+        pDen = 4;
+      }
 
-    };
+      success = Math.floor(Math.random()) * pDen + 1 > pDen - pNum;
+    }
 
-    onEnemyTeamTileClick = (col, row, power) => {
-        console.log('enemy tile click');
-
-        if (this.currentStage === 'attack' && this.currentAttackNodeSelected) {
-            if (this.adjacentTilesCoordinates(this.currentAttackNodeColumn, this.currentAttackNodeRow, col, row)) {
-                this.attackTile(this.currentAttackNodeColumn, this.currentAttackNodeRow, col, row);
-            }
-        }
-    };
-
-    setAttackTile = (col, row, power) => {
-        this.currentAttackNodeSelected = true;
-        this.currentAttackNodeColumn = col;
-        this.currentAttackNodeRow = row;
-        this.currentAttackNodePower = power;
-
-        this.board.gameTiles[col][row].selectAttack();
-        console.log('attack node changed');
-    };
-
-    resetAttackTile = () => {
-        if (this.currentAttackNodeSelected && this.currentAttackNodeColumn != null && this.currentAttackNodeRow != null ) {
-            this.board.gameTiles[this.currentAttackNodeColumn][this.currentAttackNodeRow].deselectAttack();
-        }
-        this.currentAttackNodeSelected = false;
-        this.currentAttackNodeColumn = null;
-        this.currentAttackNodeRow = null;
-        this.currentAttackNodePower = null;
-    };
-
-    attackTile(ac, ar, bc, br) {
-        let tileA = this.board.gameTiles[ac][ar];
-        let tileB = this.board.gameTiles[bc][br];
-
-        const powerDiff = Math.abs(tileA.power - tileB.power);
-        let remainA = 0;
-        let remainB = 0;
-        let pNum = 1;
-        let pDen = 1;
-
-        let success;
-        if (powerDiff >= 2) {
-            if (tileA.power < tileB.power) {
-                remainA = 1;
-                remainB = tileB.power - tileA.power;
-                success = false;
-            } else {
-                remainA = 1;
-                remainB = (tileB.power > 0) ? tileA.power - tileB.power : tileA.power - 1;
-                success = true;
-            }
-        } else {
-            remainA = 1;
-            remainB = 1;
-
-            pNum = 1;
-            pDen = 1;
-
-            if (tileA.power - tileB.power >= 1) {
-                pNum = 3;
-                pDen = 4;
-            } else if (tileA.power - tileB.power === 0) {
-                pNum = 1;
-                pDen = 2;
-            } else {
-                pNum = 1;
-                pDen = 4;
-            }
-
-            success = (Math.floor(Math.random()) * pDen) + 1 > (pDen - pNum);
-        }
-
-        /*
+    /*
           Cell Taking Algorithm
 
           Defender(B) has >= 2 more troops than Attacker(A):
@@ -259,398 +279,400 @@ class Game {
               P(A takes B) = 0.50
         */
 
-        // update tile power
-        this.board.gameTiles[ac][ar].power = remainA;
-        this.board.gameTiles[bc][br].power = remainB;
+    // update tile power
+    this.board.gameTiles[ac][ar].power = remainA;
+    this.board.gameTiles[bc][br].power = remainB;
 
-        this.resetAttackTile();
-			
-        if (success) {
-					// tile takeover!
-					this.board.gameTiles[bc][br].player = this.currentPlayer;
-					if (remainB > 1)
-						this.setAttackTile(bc, br, remainB);
-					
-					// check to see if player b still has tiles on board
-					// let enemyRemaining = 0;
-					// this.board.gameTiles.forEach(col => {
-						// col.forEach(tile => {
-							// if (tile.player === this.getNextPlayer()) {
-								// enemyRemaining += 1;
-							// }
-						// });
-					// });
+    this.resetAttackTile();
 
-					if (!this.gameOver) {		
-						const isEnemyRemaining = this.board.gameTiles.some(col => {
-							return col.some(tile => tile.player === this.getNextPlayer());
-						});
-						
-						if(!isEnemyRemaining) {
-							this.updateGameWinner(this.currentPlayer);
-							this.endGame();
-						}
-					}
-        }
+    if (success) {
+      // tile takeover!
+      this.board.gameTiles[bc][br].player = this.currentPlayer;
+      if (remainB > 1) this.setAttackTile(bc, br, remainB);
 
-        if (!this.isAttackAvailable()) {
-            this.endAttack();
-        }
-    };
+      // check to see if player b still has tiles on board
+      // let enemyRemaining = 0;
+      // this.board.gameTiles.forEach(col => {
+      // col.forEach(tile => {
+      // if (tile.player === this.getNextPlayer()) {
+      // enemyRemaining += 1;
+      // }
+      // });
+      // });
 
-    isAttackAvailable = () => {
-        // calculate remaining attack tiles
-        let validAttackTiles = [];
-        this.board.gameTiles.forEach(col => {
-            col.forEach(tile => {
-
-                if (tile.player === this.currentPlayer && tile.power > 1) {
-                    validAttackTiles.push(tile);
-                }
-
-            });
+      if (!this.gameOver) {
+        const isEnemyRemaining = this.board.gameTiles.some((col) => {
+          return col.some((tile) => tile.player === this.getNextPlayer());
         });
 
-        for (const tile of validAttackTiles) {
-
-            let c = tile.c;
-            let r = tile.r;
-            let even = (c % 2 > 0);
-
-            // check neighboring tiles
-            let neighborCoordinates = [
-                {c: c - 1, r: even ? r : r - 1}, // top left
-                {c: c - 1, r: even ? r + 1 : r}, // bottom left
-                {c: c, r: r - 1}, // top
-                {c: c, r: r + 1}, // bottom
-                {c: c + 1, r: even ? r : r - 1}, // top right
-                {c: c + 1, r: even ? r + 1 : r} // bottom right
-            ];
-
-            for (const nc of neighborCoordinates) {
-                let validCoordinate = (nc.c >= 0) && (nc.r >= 0);
-
-                if (validCoordinate && this.board.gameTiles[nc.c][nc.r].player !== this.currentPlayer) {
-                    return true;
-                }
-            }
-
+        if (!isEnemyRemaining) {
+          this.updateGameWinner(this.currentPlayer);
+          this.endGame();
         }
+      }
+    }
 
-        return false;
-    };
+    if (!this.isAttackAvailable()) {
+      this.endAttack();
+    }
+  }
 
-    adjacentTilesCoordinates = (ac, ar, bc, br) => {
-        const a = {c: ac, r: ar};
-        const b = {c: bc, r: br};
-        return this.adjacentTiles(a, b);
-    };
-
-    adjacentTiles = (a, b) => {
-        let even = (a.c % 2 > 0);
-
-        // calculate tile a's neighbors
-        let neighborCoordinates = [
-            {c: a.c - 1, r: even     ? a.r : a.r - 1}, // top left
-            {c: a.c - 1, r: even     ? a.r + 1 : a.r}, // bottom left
-
-            {c: a.c,     r: a.r - 1}, // top
-            {c: a.c,     r: a.r + 1}, // bottom
-
-            {c: a.c + 1, r: even     ? a.r : a.r - 1}, // top right
-            {c: a.c + 1, r: even     ? a.r + 1 : a.r} // bottom right
-        ];
-
-        console.log(neighborCoordinates);
-
-        for (const nc of neighborCoordinates) {
-
-            if (nc.c >= 0 && nc.r >= 0 && nc.c === b.c && nc.r === b.r)
-                return true;
+  isAttackAvailable = () => {
+    // calculate remaining attack tiles
+    let validAttackTiles = [];
+    this.board.gameTiles.forEach((col) => {
+      col.forEach((tile) => {
+        if (tile.player === this.currentPlayer && tile.power > 1) {
+          validAttackTiles.push(tile);
         }
+      });
+    });
 
-        return false;
-    };
+    for (const tile of validAttackTiles) {
+      let c = tile.c;
+      let r = tile.r;
+      let even = c % 2 > 0;
 
-    endAttack = () => {
-        // alert('attack ended');
-       // this.isEndAttackButtonDisabled = true;
-			  $('#endAttack').prop('disabled', true );
-        this.startAllocateStage();
-    };
+      // check neighboring tiles
+      let neighborCoordinates = [
+        { c: c - 1, r: even ? r : r - 1 }, // top left
+        { c: c - 1, r: even ? r + 1 : r }, // bottom left
+        { c: c, r: r - 1 }, // top
+        { c: c, r: r + 1 }, // bottom
+        { c: c + 1, r: even ? r : r - 1 }, // top right
+        { c: c + 1, r: even ? r + 1 : r }, // bottom right
+      ];
 
-    endTurn = () => {
-        // alert('turn ended');
-        this.isEndTurnButtonDisabled = true;
-        this.isEndAttackButtonDisabled = false;
+      for (const nc of neighborCoordinates) {
+        let validCoordinate = nc.c >= 0 && nc.r >= 0;
 
-        let nextPlayer = this.getNextPlayer();
-        this.updateCurrentPlayer(nextPlayer);
+        if (
+          validCoordinate &&
+          this.board.gameTiles[nc.c][nc.r].player !== this.currentPlayer
+        ) {
+          return true;
+        }
+      }
+    }
 
-        this.startAttackStage();
-    };
+    return false;
+  };
 
-		endGame = () => {
-			// do end game logic here
-			this.gameOver = true;
-		}
+  adjacentTilesCoordinates = (ac, ar, bc, br) => {
+    const a = { c: ac, r: ar };
+    const b = { c: bc, r: br };
+    return this.adjacentTiles(a, b);
+  };
 
-    /* dynamic setters for the text/game info display */
+  adjacentTiles = (a, b) => {
+    let even = a.c % 2 > 0;
 
-    updateCurrentPlayer = (newPlayer) => {
-        this.currentPlayer = newPlayer;
-        $('#player').text(newPlayer);
-    };
+    // calculate tile a's neighbors
+    let neighborCoordinates = [
+      { c: a.c - 1, r: even ? a.r : a.r - 1 }, // top left
+      { c: a.c - 1, r: even ? a.r + 1 : a.r }, // bottom left
 
-    updateCurrentStage = (newStage) => {
-        this.currentStage = newStage;
-        $('#stage').text(newStage);
-    };
+      { c: a.c, r: a.r - 1 }, // top
+      { c: a.c, r: a.r + 1 }, // bottom
 
-    updateAvailablePower = (newPower) => {
-        this.availablePower = newPower;
-        $('#power').text(newPower);
-    };
+      { c: a.c + 1, r: even ? a.r : a.r - 1 }, // top right
+      { c: a.c + 1, r: even ? a.r + 1 : a.r }, // bottom right
+    ];
 
-		updateGameWinner = (winner) => {
-			this.gameWinner = winner;
-			$('#winner').text(`Player ${winner} has won!`);
-		}
+    console.log(neighborCoordinates);
 
-};
+    for (const nc of neighborCoordinates) {
+      if (nc.c >= 0 && nc.r >= 0 && nc.c === b.c && nc.r === b.r) return true;
+    }
+
+    return false;
+  };
+
+  endAttack = () => {
+    // alert('attack ended');
+    // this.isEndAttackButtonDisabled = true;
+    $("#endAttack").prop("disabled", true);
+    this.startAllocateStage();
+  };
+
+  endTurn = () => {
+    // alert('turn ended');
+    this.isEndTurnButtonDisabled = true;
+    this.isEndAttackButtonDisabled = false;
+
+    let nextPlayer = this.getNextPlayer();
+    this.updateCurrentPlayer(nextPlayer);
+
+    this.startAttackStage();
+  };
+
+  endGame = () => {
+    // do end game logic here
+    this.gameOver = true;
+  };
+
+  /* dynamic setters for the text/game info display */
+
+  updateCurrentPlayer = (newPlayer) => {
+    this.currentPlayer = newPlayer;
+    $("#player").text(newPlayer);
+  };
+
+  updateCurrentStage = (newStage) => {
+    this.currentStage = newStage;
+    $("#stage").text(newStage);
+  };
+
+  updateAvailablePower = (newPower) => {
+    this.availablePower = newPower;
+    $("#power").text(newPower);
+  };
+
+  updateGameWinner = (winner) => {
+    this.gameWinner = winner;
+    $("#winner").text(`Player ${winner} has won!`);
+  };
+}
 
 // builds, maintains, and handles updates to the grid of tiles
 class Board {
-    constructor(tileSetup, columns, rows, size) {
-        this.gameTiles = [];
-        this.tileSetup = tileSetup;
-        this.columns = columns;
-        this.rows = rows;
-        this.size = size;
+  constructor(tileSetup, columns, rows, size) {
+    this.gameTiles = [];
+    this.tileSetup = tileSetup;
+    this.columns = columns;
+    this.rows = rows;
+    this.size = size;
+  }
+
+  build = () => {
+    this.createTiles(this.tileSetup);
+    // this.animate();
+  };
+
+  restoreTiles = () => {
+    this.gameTiles.forEach((col) => {
+      col.forEach((tile) => {
+        tile.restoreBase();
+      });
+    });
+  };
+
+  // turn the setup data from map.js into an array
+  // of renderable / clickable HexagonTile objects
+  createTiles = (tileSetup) => {
+    let getCenter = (col, row) => {
+      let x = this.size + col * (this.size + this.size / 2);
+      let y =
+        this.size +
+        row * (this.size * Math.sqrt(3)) +
+        (col % 2) * (this.size * (Math.sqrt(3) / 2));
+
+      return { x, y };
+    };
+
+    for (let col = 0; col < this.columns; col++) {
+      this.gameTiles.push([]);
+      for (let row = 0; row < this.rows; row++) {
+        let center = getCenter(col, row);
+        let setup = tileSetup[col][row];
+
+        let player = setup.player;
+        let power = setup.power;
+        let active = setup.active;
+
+        let newTile = new HexagonTile(
+          col,
+          row,
+          center.x,
+          center.y,
+          this.size,
+          player,
+          power,
+          active
+        );
+
+        this.gameTiles[col].push(newTile);
+      }
     }
+  };
 
-    build = () => {
-        this.createTiles(this.tileSetup);
-        // this.animate();
-    };
-
-		restoreTiles = () => {
-			this.gameTiles.forEach(col => {
-				col.forEach(tile => {
-					tile.restoreBase();
-				})
-			})
-		}
-
-    // turn the setup data from map.js into an array
-    // of renderable / clickable HexagonTile objects 
-    createTiles = (tileSetup) => {
-
-        let getCenter = (col, row) => {
-            let x = this.size + col * (this.size + this.size / 2);
-            let y = this.size + row * (this.size * Math.sqrt(3)) + ((col % 2) * (this.size * (Math.sqrt(3) / 2)));
-
-            return { x, y }
-        }
-
-        for (let col = 0; col < this.columns; col++) {
-            this.gameTiles.push([]);
-            for (let row = 0; row < this.rows; row++) {
-                let center = getCenter(col, row);
-                let setup = tileSetup[col][row];
-
-                let player = setup.player;
-                let power = setup.power;
-                let active = setup.active;
-
-                let newTile = new HexagonTile(
-                    col, row,
-                    center.x, center.y, this.size,
-                    player, power, active
-                );
-
-                this.gameTiles[col].push(newTile);
-            }
-        }
-
-    };
-
-    // invoked once when game board is created,
-    // and any time game state changes.
-    animate = () => {
-        this.gameTiles.forEach(column => {
-            column.forEach(tile => {
-                tile.draw();
-            });
-        });
-    };
-
-};
+  // invoked once when game board is created,
+  // and any time game state changes.
+  animate = () => {
+    this.gameTiles.forEach((column) => {
+      column.forEach((tile) => {
+        tile.draw();
+      });
+    });
+  };
+}
 
 // handles rendering and canvas events for a game tile
 class HexagonTile {
-    colorOverride = null;
+  colorOverride = null;
 
-    constructor(c, r, cx, cy, size, player, power, active) {
-        this.c = c;
-        this.r = r;
+  constructor(c, r, cx, cy, size, player, power, active) {
+    this.c = c;
+    this.r = r;
 
-        this.cx = cx;
-        this.cy = cy;
-        this.size = size;
+    this.cx = cx;
+    this.cy = cy;
+    this.size = size;
 
-        this.hexagon = null;
-        this.hasEventListener = false;
+    this.hexagon = null;
+    this.hasEventListener = false;
 
-			  this.basePlayer = player;
-			  this.basePower = power;
-			  this.baseActive = active;
+    this.basePlayer = player;
+    this.basePower = power;
+    this.baseActive = active;
 
-        this.player = player;
-        this.power = power;
-        this.active = active;
-        // this.draw();
+    this.player = player;
+    this.power = power;
+    this.active = active;
+    // this.draw();
 
-        this.attacking = false;
+    this.attacking = false;
+  }
+
+  restoreBase = () => {
+    this.player = this.basePlayer;
+    this.power = this.basePower;
+    this.active = this.baseActive;
+    this.attacking = false;
+  };
+
+  deselectAttack = () => {
+    this.attacking = false;
+  };
+
+  selectAttack = () => {
+    this.attacking = true;
+  };
+
+  draw = () => {
+    let size = this.size;
+    let cx = this.cx;
+    let cy = this.cy;
+    let power = this.power;
+    let player = this.player;
+    let active = this.active;
+    let c = this.c;
+    let r = this.r;
+
+    if (!active) {
+      return;
     }
 
-	  restoreBase = () => {
-			this.player = this.basePlayer;
-		  this.power = this.basePower;
-		  this.active = this.baseActive;
-			this.attacking = false;
-		}
+    let drawSize = size - 0.15 * size;
 
-    deselectAttack = () => {
-        this.attacking = false;
-    };
+    this.hexagon = new Path2D();
+    ctx.beginPath();
+    this.hexagon.moveTo(
+      cx + drawSize * Math.cos(0),
+      cy + drawSize * Math.sin(0)
+    );
 
-    selectAttack = () => {
-        this.attacking = true;
-    };
+    for (let i = 1; i <= 6; i += 1) {
+      this.hexagon.lineTo(
+        cx + drawSize * Math.cos((i * Math.PI) / 3),
+        cy + drawSize * Math.sin((i * Math.PI) / 3)
+      );
+    }
 
-    draw = () => {
-        let size = this.size;
-        let cx = this.cx;
-        let cy = this.cy;
-        let power = this.power;
-        let player = this.player;
-        let active = this.active;
-        let c = this.c;
-        let r = this.r;
+    // end path
+    ctx.closePath();
 
-        if (!active) {
-            return;
-        }
+    // let playerLineColor = palette.green;
+    let playerLineColor = palette.dark_gray;
+    let playerFillColor = palette.background;
 
-        let drawSize = size - (0.15 * size);
+    if (player === "A") {
+      playerLineColor = palette.light_teal;
+      playerFillColor = palette.light_teal;
+    } else if (player === "B") {
+      playerLineColor = palette.red;
+      playerFillColor = palette.red;
+    }
 
-        this.hexagon = new Path2D();
-        ctx.beginPath();
-        this.hexagon.moveTo(cx + drawSize * Math.cos(0), cy + drawSize * Math.sin(0));
+    if (this.attacking) {
+      playerLineColor = "white";
+    }
 
-        for (let i = 1; i <= 6; i += 1) {
-            this.hexagon.lineTo(cx + drawSize * Math.cos(i * Math.PI / 3), cy + drawSize * Math.sin(i * Math.PI / 3));
-        }
+    // canvas.addEventListener('mousemove', function (event) {
+    //   if (ctx.isPointInPath(this.hexagon, event.offsetX, event.offsetY)) {
+    //     console.log('point is in path of (' + c + ', ' + r + ')');
+    //   }
+    // });
 
-        // end path
-        ctx.closePath();
+    // player fill
+    ctx.fillStyle = this.colorOverride ? this.colorOverride : playerFillColor;
+    ctx.fill(this.hexagon);
 
-        // let playerLineColor = palette.green;
-        let playerLineColor = palette.dark_gray;
-        let playerFillColor = palette.background;
+    // dark gap/outline
+    ctx.strokeStyle = palette.background;
+    ctx.lineWidth = 15;
+    ctx.stroke(this.hexagon);
 
-        if (player === 'A') {
-            playerLineColor = palette.light_teal;
-            playerFillColor = palette.light_teal;
-        } else if (player === 'B') {
-            playerLineColor = palette.red;
-            playerFillColor = palette.red;
-        }
+    // player outline
+    ctx.strokeStyle = playerLineColor;
+    ctx.lineWidth = 3;
+    ctx.stroke(this.hexagon);
 
-        if (this.attacking) {
-            playerLineColor = 'white';
-        }
+    // power text
+    let fontStyle = `${Math.floor(drawSize / 3)}px sans-serif`;
+    ctx.font = fontStyle;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "white";
+    ctx.fillText(`${power}`, cx, cy, drawSize);
 
-        // canvas.addEventListener('mousemove', function (event) {
-        //   if (ctx.isPointInPath(this.hexagon, event.offsetX, event.offsetY)) {
-        //     console.log('point is in path of (' + c + ', ' + r + ')');
-        //   }
-        // });
+    this.update();
 
-        // player fill
-        ctx.fillStyle = this.colorOverride ? this.colorOverride : playerFillColor;
-        ctx.fill(this.hexagon);
+    if (!this.hasEventListener) {
+      canvas.addEventListener("click", this.handleCanvasClick);
+      this.hasEventListener = true;
+    }
+  };
 
-        // dark gap/outline
-        ctx.strokeStyle = palette.background;
-        ctx.lineWidth = 15;
-        ctx.stroke(this.hexagon);
+  handleCanvasClick = (event) => {
+    if (ctx.isPointInPath(this.hexagon, event.offsetX, event.offsetY)) {
+      // canvas.removeEventListener('click', this.handleCanvasClick);
+      console.warn("POINT CLICKED");
 
-        // player outline
-        ctx.strokeStyle = playerLineColor;
-        ctx.lineWidth = 3;
-        ctx.stroke(this.hexagon);
+      gameController.onTileClick(this.c, this.r, this.power, this.player);
+    }
+  };
 
-        // power text
-        let fontStyle = `${Math.floor(drawSize / 3)}px sans-serif`;
-        ctx.font = fontStyle;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'white';
-        ctx.fillText(`${power}`, cx, cy, drawSize);
-
-        this.update();
-
-        if (!this.hasEventListener) {
-            canvas.addEventListener('click', this.handleCanvasClick);
-            this.hasEventListener = true;
-        }
-    };
-
-    handleCanvasClick = (event) => {
-        if (ctx.isPointInPath(this.hexagon, event.offsetX, event.offsetY)) {
-            // canvas.removeEventListener('click', this.handleCanvasClick);
-            console.warn('POINT CLICKED');
-
-            gameController.onTileClick(this.c, this.r, this.power, this.player);
-        }
-    };
-
-		
-
-    update = () => {
-
-    };
+  update = () => {};
 }
 
 var gameController = new Game();
 gameController.config(mapConfig);
 gameController.start();
 
-$(document).ready(function() {
+$(document).ready(function () {
+  // function disableEndAttackBtn() { $('#endAttack').prop('disabled', true); }
+  // function disableEndTurnBtn() { $('#endTurn').prop('disabled', true); }
+  // function enableEndAttackBtn() { $('#endAttack').prop('disabled', false); }
+  // function enableEndTurnBtn() { $('#endTurn').prop('disabled', false); }
+  // disableEndTurnBtn();
 
-    // function disableEndAttackBtn() { $('#endAttack').prop('disabled', true); }
-    // function disableEndTurnBtn() { $('#endTurn').prop('disabled', true); }
-    // function enableEndAttackBtn() { $('#endAttack').prop('disabled', false); }
-    // function enableEndTurnBtn() { $('#endTurn').prop('disabled', false); }
-    // disableEndTurnBtn();
-    
-    // event listeners
-    $('#endAttack').click(function() {
-			$('#endAttack').prop('disabled', true);
-			gameController.endAttack();
-    });
+  // event listeners
+  $("#endAttack").click(function () {
+    $("#endAttack").prop("disabled", true);
+    gameController.endAttack();
+  });
 
-    $('#endTurn').click(function() {
-			$('#endTurn').prop('disabled', true);
-			gameController.endTurn();
-    }).prop('disabled', true);
+  $("#endTurn")
+    .click(function () {
+      $("#endTurn").prop("disabled", true);
+      gameController.endTurn();
+    })
+    .prop("disabled", true);
 
-		$('#resetGame').click(function() {
-			$('#winner').text('');
-			gameController.reset();
-			gameController.start();
-    });
-
+  $("#resetGame").click(function () {
+    $("#winner").text("");
+    gameController.reset();
+    gameController.start();
+  });
 });
