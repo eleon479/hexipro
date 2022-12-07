@@ -1,16 +1,12 @@
 mapConfig = map1;
 
-// canvas and rendering context setup
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
-
-/**
- * @todo Calculate needed canvas size (px) given (rows, cols, size)
- * Create a canvas of that size programmatically here
- *
- * ex: horizontally: 1000px can fit 13 columns of 50px hexagons
- *     vertically: 600px can fit 7 rows of 50px hexagons
- */
+const canvasWidth =
+  2 * mapConfig.columns + mapConfig.size * 1.5 * mapConfig.columns;
+const canvasHeight = mapConfig.rows * mapConfig.size * 2;
+canvas.setAttribute("width", `${canvasWidth}px`);
+canvas.setAttribute("height", `${canvasHeight}px`);
 
 /* Hexipro local game instance controller */
 class Game {
