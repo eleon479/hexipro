@@ -135,12 +135,16 @@ class Game {
     if (this.currentStage === "allocate") {
       // allocate selection
       if (this.availablePower > 0) {
-        this.board.gameTiles[col][row].power += 1;
+        if (this.board.gameTiles[col][row].power < 12) {
+          this.board.gameTiles[col][row].power += 1;
 
-        this.updateAvailablePower(this.availablePower - 1);
-        if (this.availablePower === 0) {
-          $("#endTurn").prop("disabled", false);
-          // this.endTurn();
+          this.updateAvailablePower(this.availablePower - 1);
+          if (this.availablePower === 0) {
+            $("#endTurn").prop("disabled", false);
+            // this.endTurn();
+          }
+        } else {
+          console.log("can't allocate any more troops to this tile!");
         }
       } else {
         console.log("not enough troops?");
