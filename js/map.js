@@ -406,3 +406,41 @@ const largeMap = {
     ],
   ],
 };
+
+const testMap = {
+  size: 50,
+  columns: 5,
+  rows: 4,
+  tiles: [
+    [
+      { player: "A", power: 2, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+    ],
+    [
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+    ],
+    [
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+    ],
+    [
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+    ],
+    [
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: null, power: 0, active: true },
+      { player: "B", power: 2, active: true },
+    ],
+  ],
+};
