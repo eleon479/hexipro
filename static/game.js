@@ -1,43 +1,55 @@
 class Session {
   constructor() {
-    this.socket = null;
+    this.socket = io();
     this.playerId = "";
     this.roomId = "";
     this.color = "#000000".replace(/0/g, function () {
       return (~~(Math.random() * 16)).toString(16);
     });
-    this.status = "PendingConfig";
+    this.status = "Not Connected";
     this.events = [];
+    this.serverGameState = {};
   }
 
-  config(configOptions) {
-    this.events.push({ type: "SessionConfigured", info: configOptions });
+  config(startGameFn) {
+    this.startGameFn = startGameFn;
+
+    this.events.push({ type: "SessionConfigured" });
     console.log("Session.config");
   }
 
   connect() {
-    this.socket = io();
+    // this.socket = io();
     this.socket.on("connect", () => {
       // get id from the connected socket and store
       this.playerId = this.socket.id;
 
       // register for game updates from the server
-      this.socket.on("gameUpdate", this.handleServerEvent);
+      // this.socket.on("gameUpdate", this.handleServerEvent);
 
       // tell server to create player with given options
       this.socket.emit("initialize", { color: this.color });
 
       console.log("connect - playerId: ", this.socket.id);
+
+      this.status = "Socket connection created, Player Initialized.";
     });
 
     this.socket.on("WaitForEnemyConnect", (roomInfo) => {
       this.roomId = roomInfo.roomId;
       console.log("WaitForEnemyConnect - roomId: ", this.roomId);
+
+      this.status = "Room created. Waiting for enemy to connect.";
     });
 
     this.socket.on("GameSessionReady", (roomInfo) => {
       this.roomId = roomInfo.roomId;
       console.log("GameSessionReady - roomId: ", this.roomId);
+      console.log(roomInfo);
+
+      this.status = "Enemy connected. Game session ready!";
+      this.serverGameState = roomInfo.game;
+      this.startGameFn(roomInfo);
     });
 
     this.events.push({ type: "SessionConnected" });
@@ -56,29 +68,27 @@ class Session {
     }
   }
 
-  dispatchClientEvent() {
-    console.log("Session.dispatchClientEvent");
+  dispatchClientEvent(msgName, msg) {
+    console.log("Session.dispatchClientEvent - msgName: ", msgName);
+    console.log("msg: ", msg);
+    this.socket.emit(msgName, msg);
+
+    // @TODO clean this up, remove redundant code
+    // Example: this.session.dispatchClientEvent("gameUpdate", {
+    //   type: "tileClick",
+    //   data: {
+    //     col,
+    //     row,
+    //     power,
+    //     player,
+    //   },
+    // });
   }
 
   logServerEvent(eventName, eventMessage) {
     console.log("server: ", eventName, ": ", eventMessage);
   }
 }
-
-const sessionController = new Session();
-sessionController.connect();
-
-// @todo load mapConfig from game session
-mapConfig = testMap;
-
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
-
-const canvasWidth =
-  2 * mapConfig.columns + mapConfig.size * 1.6 * mapConfig.columns;
-const canvasHeight = mapConfig.rows * mapConfig.size * 2;
-canvas.setAttribute("width", `${canvasWidth}px`);
-canvas.setAttribute("height", `${canvasHeight}px`);
 
 /* Hexipro local game instance controller */
 class Game {
@@ -97,7 +107,7 @@ class Game {
     // allocate stage state
     this.availablePower = 0;
 
-    // attack state state
+    // attack stage state
     this.currentAttackNodeSelected = false;
     this.currentAttackNodeColumn = null;
     this.currentAttackNodeRow = null;
@@ -114,14 +124,44 @@ class Game {
   // gameController.config(...map1);
   // gameController.start();
 
-  config = ({ size, columns, rows, tiles }) => {
-    this.board = new Board(tiles, columns, rows, size);
+  config = ({ size, columns, rows, tiles, players }) => {
+    console.log("GameController.config: players:", players);
+    this.players = players.map((p) => p.playerId);
+    this.board = new Board(tiles, columns, rows, size, players);
     this.board.build();
+  };
+
+  bindSession = (sessionController) => {
+    this.session = sessionController;
+
+    this.session.socket.on("gameUpdate", (msg) => {
+      if (msg.type === "tileClick") {
+        let data = msg.data;
+        this.onTileClick(data.col, data.row, data.power, data.player, true);
+      }
+
+      if (msg.type === "endAttack") {
+        let data = msg.data;
+        this.endAttack(true);
+      }
+
+      if (msg.type === "endTurn") {
+        let data = msg.data;
+        this.endTurn(true);
+      }
+    });
+
+    // this.session.socket.on('endAttack', (data) => {
+    //   this.onTileClick(data.col, data.row, data.power, data.player, true);
+    // });
+
+    // ...
   };
 
   start = () => {
     this.board.animate();
-    this.updateCurrentPlayer("A");
+    // this.updateCurrentPlayer(this.players[0]);
+    this.updateCurrentPlayer(this.session.serverGameState.currentPlayer);
     this.startAttackStage();
   };
 
@@ -143,7 +183,11 @@ class Game {
   };
 
   getNextPlayer = () => {
-    return this.currentPlayer === "A" ? "B" : "A";
+    // @TODO abstract this out to support > 2 players
+    return this.currentPlayer === this.players[0]
+      ? this.players[1]
+      : this.players[0];
+    // return this.currentPlayer === "A" ? "B" : "A";
   };
 
   startAllocateStage = () => {
@@ -187,9 +231,28 @@ class Game {
     }
   };
 
-  onTileClick = (col, row, power, player) => {
+  onTileClick = (col, row, power, player, fromServer = false) => {
+    // allow this method to continue if it came from the server,
+    // even if its not this player's turn
+    if (this.currentPlayer !== this.session.playerId && !fromServer) {
+      return;
+    }
+
+    // if its a legitimate, correct turn user action, dispatch it as well
+    if (!fromServer && this.currentPlayer === this.session.playerId) {
+      this.session.dispatchClientEvent("gameUpdate", {
+        type: "tileClick",
+        data: {
+          col,
+          row,
+          power,
+          player,
+        },
+      });
+    }
+
     console.log("tile click successfully dispatched to Game controller: ");
-    console.log(col, row, power, player);
+    console.log(col, row, power, player, fromServer);
 
     if (this.currentPlayer === player) {
       console.log("same team tile click");
@@ -460,14 +523,42 @@ class Game {
     return false;
   };
 
-  endAttack = () => {
+  endAttack = (fromServer = false) => {
+    if (this.currentPlayer !== this.session.playerId && !fromServer) {
+      return;
+    }
+
+    if (!fromServer && this.currentPlayer === this.session.playerId) {
+      this.session.dispatchClientEvent("gameUpdate", {
+        type: "endAttack",
+        data: {
+          currentPlayer: this.currentPlayer,
+          currentStage: this.currentStage,
+        },
+      });
+    }
+
     // alert('attack ended');
     // this.isEndAttackButtonDisabled = true;
     $("#endAttack").prop("disabled", true);
     this.startAllocateStage();
   };
 
-  endTurn = () => {
+  endTurn = (fromServer = false) => {
+    if (this.currentPlayer !== this.session.playerId && !fromServer) {
+      return;
+    }
+
+    if (!fromServer && this.currentPlayer === this.session.playerId) {
+      this.session.dispatchClientEvent("gameUpdate", {
+        type: "endTurn",
+        data: {
+          currentPlayer: this.currentPlayer,
+          currentStage: this.currentStage,
+        },
+      });
+    }
+
     // alert('turn ended');
     this.isEndTurnButtonDisabled = true;
     this.isEndAttackButtonDisabled = false;
@@ -508,12 +599,13 @@ class Game {
 
 // builds, maintains, and handles updates to the grid of tiles
 class Board {
-  constructor(tileSetup, columns, rows, size) {
+  constructor(tileSetup, columns, rows, size, players) {
     this.gameTiles = [];
     this.tileSetup = tileSetup;
     this.columns = columns;
     this.rows = rows;
     this.size = size;
+    this.players = players;
   }
 
   build = () => {
@@ -560,7 +652,8 @@ class Board {
           this.size,
           player,
           power,
-          active
+          active,
+          this.players
         );
 
         this.gameTiles[col].push(newTile);
@@ -583,7 +676,7 @@ class Board {
 class HexagonTile {
   colorOverride = null;
 
-  constructor(c, r, cx, cy, size, player, power, active) {
+  constructor(c, r, cx, cy, size, player, power, active, players) {
     this.c = c;
     this.r = r;
 
@@ -601,6 +694,8 @@ class HexagonTile {
     this.player = player;
     this.power = power;
     this.active = active;
+
+    this.players = players;
     // this.draw();
 
     this.attacking = false;
@@ -658,13 +753,19 @@ class HexagonTile {
     let playerLineColor = palette.dark_gray;
     let playerFillColor = palette.background;
 
-    if (player === "A") {
-      playerLineColor = palette.light_teal;
-      playerFillColor = palette.light_teal;
-    } else if (player === "B") {
-      playerLineColor = palette.red;
-      playerFillColor = palette.red;
+    if (player) {
+      let playerColor = this.players.find((p) => p.playerId === player).color;
+      playerLineColor = playerColor;
+      playerFillColor = playerColor;
     }
+
+    // if (player === "A") {
+    //   playerLineColor = palette.light_teal;
+    //   playerFillColor = palette.light_teal;
+    // } else if (player === "B") {
+    //   playerLineColor = palette.red;
+    //   playerFillColor = palette.red;
+    // }
 
     if (this.attacking) {
       playerLineColor = "white";
@@ -719,8 +820,26 @@ class HexagonTile {
 }
 
 var gameController = new Game();
-gameController.config(mapConfig);
-gameController.start();
+var sessionController = new Session();
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+sessionController.config(function (roomInfo) {
+  var mapConfig = roomInfo.map;
+
+  const canvasWidth =
+    2 * mapConfig.columns + mapConfig.size * 1.6 * mapConfig.columns;
+  const canvasHeight = mapConfig.rows * mapConfig.size * 2;
+  canvas.setAttribute("width", `${canvasWidth}px`);
+  canvas.setAttribute("height", `${canvasHeight}px`);
+
+  gameController.config({ ...mapConfig, players: roomInfo.players });
+  gameController.bindSession(sessionController);
+  gameController.start();
+});
+
+sessionController.connect();
 
 $(document).ready(function () {
   // function disableEndAttackBtn() { $('#endAttack').prop('disabled', true); }
@@ -730,11 +849,6 @@ $(document).ready(function () {
   // disableEndTurnBtn();
 
   // event listeners
-  $("#createSession").click(function () {
-    $("createSession").prop("disabled", true);
-    sessionController;
-  });
-
   $("#endAttack").click(function () {
     $("#endAttack").prop("disabled", true);
     gameController.endAttack();
@@ -752,4 +866,6 @@ $(document).ready(function () {
     gameController.reset();
     gameController.start();
   });
+
+  $("#resetGame").prop("disabled", true);
 });

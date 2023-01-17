@@ -15,9 +15,9 @@ function getMap(columns, rows, players) {
   }
 
   // maybe extract this elsewhere?
-  newMap.tiles[0][0] = { player: players[0], power: 2, active: true };
+  newMap.tiles[0][0] = { player: players[0].playerId, power: 2, active: true };
   newMap.tiles[columns - 1][rows - 1] = {
-    player: players[1],
+    player: players[1].playerId,
     power: 2,
     active: true,
   };
