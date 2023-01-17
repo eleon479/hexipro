@@ -1,103 +1,79 @@
-/*
+class Session {
+  constructor() {
+    this.socket = null;
+    this.playerId = "";
+    this.roomId = "";
+    this.color = "#000000".replace(/0/g, function () {
+      return (~~(Math.random() * 16)).toString(16);
+    });
+    this.status = "PendingConfig";
+    this.events = [];
+  }
 
-Incoming server events will invoke Game Controller methods
-(if its your turn): Game (actions) will dispatch client events
+  config(configOptions) {
+    this.events.push({ type: "SessionConfigured", info: configOptions });
+    console.log("Session.config");
+  }
 
-client A   
-        \
-        [Server] <===> [db]  
-        /
-client B
+  connect() {
+    this.socket = io();
+    this.socket.on("connect", () => {
+      // get id from the connected socket and store
+      this.playerId = this.socket.id;
 
-A Server "Game" session/room is "locked" once 2 clients are connected, setup + ready.
+      // register for game updates from the server
+      this.socket.on("gameUpdate", this.handleServerEvent);
 
-ServerEvent: {} (sent by server, received by clients*)
-ClientEvent: {} (sent by client, received by server)
+      // tell server to create player with given options
+      this.socket.emit("initialize", { color: this.color });
 
-ClientEvents:
-- CreateGame             - SelectTile
-- Connect                - DeselectTile
-- Setup                  - AttackTile (can trigger end attack / start allocate)
-- Ready                  - AllocateTile (can trigger end turn)
+      console.log("connect - playerId: ", this.socket.id);
+    });
 
-ServerEvents: 
-- WaitForEnemyConnect    - StartTurn      - StartAllocate    - ChangeActivePlayer
-- WaitForEnemySetup      - StartAttack    - AllocateTile     - EndGame
-- EnemyReady             - AttackTile     - EndAllocate
-- StartGame              - EndAttack      - EndTurn
+    this.socket.on("WaitForEnemyConnect", (roomInfo) => {
+      this.roomId = roomInfo.roomId;
+      console.log("WaitForEnemyConnect - roomId: ", this.roomId);
+    });
 
-When client A connects, server will provide it with base map but
-not start game yet, waiting for other client. (state: 'waitingConnect'?)
+    this.socket.on("GameSessionReady", (roomInfo) => {
+      this.roomId = roomInfo.roomId;
+      console.log("GameSessionReady - roomId: ", this.roomId);
+    });
 
-When client B connects, server will provide B with base map, and both
-with (state: 'waitingInit') while B gets things set up.
+    this.events.push({ type: "SessionConnected" });
+    console.log("Session.connect");
+  }
 
-When client B finishes setup, server provides both A & B with
-(serverEvent: {type: 'gameStart', currentPlayer: 'A', stage: 'attack'})
+  setupGame() {
+    console.log("Session.setupGame");
+  }
 
-Client A clicks a valid tile -> {type: 'tileSelect', tile: {col: 0, row: 0} }
+  handleGameEvent(gameEvent) {
+    console.log("Session.handleGameEvent");
 
-Client A attacks a valid tile -> {
-  type: 'tileAttack',
-  player: 'A',
-  srcTileResult: {
-    col: 0, row: 0, owner: 'A', power: 1
-  },
-  dstTileResult: {
-    col: 1, row: 0, owner: 'A', power: 1
-  },
+    if (gameEvent.type === "attack") {
+      // update client to reflect the attack
+    }
+  }
+
+  dispatchClientEvent() {
+    console.log("Session.dispatchClientEvent");
+  }
+
+  logServerEvent(eventName, eventMessage) {
+    console.log("server: ", eventName, ": ", eventMessage);
+  }
 }
 
-Client A ends attack/start allocate stage -> {
-  type: 'endAttack',
-  player: 'A',
-  stage: 'allocate'
-}
-
-Client A allocates power to a tile -> {
-  type: 'allocatePower',
-  player: 'A',
-  tileResult: {
-    col: 1, row: 0, owner: 'A', power 2
-  },
-  powerResult: 1
-}
-...
-Client A ends turn -> {
-  type: 'endTurn',
-  player: 'A',
-  currentPlayer: 'B',
-  stage: 'attack'
-}
-...
-
-Each incoming ServerEvent will invoke a GameController function that subsequently
-updates the local game state, board, tiles, etc...
-
-Each local game action will dispatch a ClientEvent. (Before receiving success status from 
-  server, we can update client state since preliminary checks are done + we don't want to 
-  have the game seem unresponsive. We will simply mark the event/state as 'unverified')
-  - If ClientEvent successful: Server sends ServerEvent to both clients. 
-    - Client A (that sent the event) will simply update its state to 'verified'
-    - Client B will update its state as necessary in response to event.
-  - If not successful: Server sends ServerEvent targetClient: 'A' and (revert)
-    - Client A must update its state back to previous state before action
-    - Client B is unchanged
-
-
-Note: Players can "End Attack" before they've exhausted all possible options.
-  but Players cannot "End Turn" before allocating all power points.
-
-Suggestion: End Turn as soon as all power points are allocated (to keep other player from waiting)
-
-*/
+const sessionController = new Session();
+sessionController.connect();
 
 // @todo load mapConfig from game session
-
 mapConfig = testMap;
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
+
 const canvasWidth =
   2 * mapConfig.columns + mapConfig.size * 1.6 * mapConfig.columns;
 const canvasHeight = mapConfig.rows * mapConfig.size * 2;
@@ -754,6 +730,11 @@ $(document).ready(function () {
   // disableEndTurnBtn();
 
   // event listeners
+  $("#createSession").click(function () {
+    $("createSession").prop("disabled", true);
+    sessionController;
+  });
+
   $("#endAttack").click(function () {
     $("#endAttack").prop("disabled", true);
     gameController.endAttack();
