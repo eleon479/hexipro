@@ -56,6 +56,13 @@ io.on("connection", function (socket) {
         rooms[openRoom].status = "Ready";
       }
 
+      // create the map
+      rooms[openRoom].map = mapBuilder.getMap(5, 4, rooms[openRoom].players);
+      rooms[openRoom].game = {
+        currentPlayer: rooms[openRoom].players[0].playerId,
+        // currentStage: 'attack'
+      };
+
       socket.join(openRoom);
       io.to(openRoom).emit("GameSessionReady", rooms[openRoom]);
     } else {
@@ -80,8 +87,10 @@ io.on("connection", function (socket) {
     showServerState("initialize");
   });
 
-  socket.on("attack", function (clientEvent) {
-    console.log('clientEvent ("attack"): ', clientEvent);
+  socket.on("gameUpdate", function (clientEvent) {
+    console.log("gameUpdate (" + clientEvent.type + "): ", clientEvent.data);
+    console.log(socket.rooms);
+    socket.broadcast.emit("gameUpdate", clientEvent);
   });
 
   socket.on("disconnecting", () => {
