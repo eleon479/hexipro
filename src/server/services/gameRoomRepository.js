@@ -5,11 +5,21 @@ class gameRoomRepository {
     this.mapBuilder = mapBuilder;
   }
 
-  findOpen() {
-    return (
-      Object.keys(this.gameRooms).find((roomId) => !rooms[roomId].locked) ||
-      false
-    );
+  findOpenRoom() {
+    let openRoomId = Object.keys(this.gameRooms).find((roomId) => {
+      return !this.gameRooms[roomId].locked;
+    });
+
+    let isNew = false;
+    if (!openRoomId) {
+      openRoomId = this.createGameRoom();
+      isNew = true;
+    }
+
+    return {
+      roomId: openRoomId,
+      isNew: isNew,
+    };
   }
 
   addPlayer(newPlayer, roomId) {
@@ -22,6 +32,7 @@ class gameRoomRepository {
     ];
 
     if (this.gameRooms[roomId].players.length >= this.maxPlayerCount) {
+      console.log("addPlayer -> max player count reached");
       this.gameRooms[roomId].locked = true;
       this.gameRooms[roomId].status = "Ready";
       gameRoomReady = true;
@@ -30,8 +41,30 @@ class gameRoomRepository {
     return gameRoomReady;
   }
 
+  isRoomReady(roomId) {
+    return this.gameRooms[roomId].status === "Ready";
+  }
+
+  createMap(roomId) {
+    console.log(`createMap: for ${roomId}`);
+
+    /* @todo: Create a MapBuilder service */
+
+    this.gameRooms[roomId].map = this.mapBuilder.getMap(
+      5,
+      4,
+      this.gameRooms[roomId].players
+    );
+  }
+
+  getGameRoom(roomId) {
+    return this.gameRooms[roomId];
+  }
+
   createGameRoom() {
     console.log(`createGameRoom`);
+
+    var { randomUUID } = require("crypto");
 
     const newGameRoom = {
       roomId: randomUUID(),
@@ -41,37 +74,39 @@ class gameRoomRepository {
     };
 
     this.gameRooms[newGameRoom.roomId] = newGameRoom;
+    this.logRoomCount();
     return newGameRoom.roomId;
   }
 
-  createMap(roomId) {
-    console.log(`stub: createMap: ${roomId}`);
-
-    /* @todo: Create a MapBuilder service */
-
-    this.gameRooms[roomId].map = this.mapBuilder.getMap();
-  }
-
   startGame(roomId) {
-    console.log(`stub: startGame: ${roomId}`);
+    console.log(`startGame: ${roomId}`);
+    // this.gameRooms[roomId].status = "Started";
   }
 
-  removePlayerFromAllRooms(playerId) {
+  removePlayerFromRooms(playerId) {
+    console.log(`removing ${playerId} from rooms...`);
     for (let room of Object.keys(this.gameRooms)) {
       let newPlayerList = this.gameRooms[room].players.filter(
         (player) => player.playerId !== playerId
       );
 
       this.gameRooms[room].players = [...newPlayerList];
+      this.gameRooms[room].status = "WaitingDisconnectedPlayer";
     }
   }
 
-  removeEmpty() {
+  removeEmptyRooms() {
+    console.log(`removing empty rooms...`);
     for (let room of Object.keys(this.gameRooms)) {
       if (this.gameRooms[room].players.length < 1) {
         delete this.gameRooms[room];
       }
     }
+    this.logRoomCount();
+  }
+
+  logRoomCount() {
+    console.log(`rooms: ${Object.keys(this.gameRooms).length}`);
   }
 }
 
