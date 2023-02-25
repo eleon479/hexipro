@@ -4,7 +4,7 @@
   "description": "A little hex-y tile game!",
   "main": "index.html",
   "scripts": {
-    "start": "serve",
+    "start": "node server.js",
     "build": "echo This is a static template, there is no bundler or bundling involved!"
   },
   "repository": {
@@ -25,6 +25,6 @@
   "homepage": "https://github.com/eleon479/hexipro#readme",
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.5.4"
+    "socket.io": "^4.6.0"
   }
 }
