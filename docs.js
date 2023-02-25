@@ -90,4 +90,15 @@ Note: Players can "End Attack" before they've exhausted all possible options.
 
 Suggestion: End Turn as soon as all power points are allocated (to keep other player from waiting)
 
+future: AI player
+
+aggro:
+figure out which of the AI's tiles is most exposed 
+exposure = (adjacent empty tiles / total active adjacent tiles)
+
+ex: @ the bottom right of the tile map:
+  0 |
+0 1 |
+----
+
 */
