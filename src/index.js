@@ -9,12 +9,6 @@ const app = express()
   .set("port", PORT)
   .use("/", express.static(__dirname + "/client"));
 
-/*
-app.get("/", function (req, res) {
-  res.sendFile(path.join(__dirname, INDEX));
-});
-*/
-
 // socket server setup
 var server = http.Server(app);
 var io = socketIO(server);
@@ -27,7 +21,9 @@ const mapBuilder = require("./server/maps/mapBuilder");
 // repositories
 const playerPoolRepository = require("./server/services/playerPoolRepository");
 const gameRoomRepository = require("./server/services/gameRoomRepository");
-const stateContext = {
+
+// services and state
+const serverContext = {
   playerPool: playerPoolRepository,
   gameRooms: gameRoomRepository,
   services: {
@@ -40,11 +36,11 @@ const registerGameHandlers = require("./server/handlers/gameHandler");
 const registerPlayerHandlers = require("./server/handlers/playerHandler");
 
 const onConnection = (socket) => {
-  console.log("connection");
+  console.log("* * * * * * * connection * * * * * * *");
   socket.emit("game", { x: "Welcome, ", y: socket.id });
 
-  registerPlayerHandlers(io, socket, stateContext);
-  registerGameHandlers(io, socket, stateContext);
+  registerPlayerHandlers(io, socket, serverContext);
+  registerGameHandlers(io, socket, serverContext);
 };
 
 io.on("connection", onConnection);

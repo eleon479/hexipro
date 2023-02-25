@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Hexipro</title>
-    <link rel="stylesheet" href="/static/css/game.css" />
+    <title>Hexi</title>
+    <link rel="stylesheet" href="css/game.css" />
   </head>
 
   <body>
@@ -39,21 +39,39 @@
         Player: <span id="player">PLAYER</span><br />
         Stage: <span id="stage">STAGE</span><br />
         Power: <span id="power">POWER</span>
+        <ul id="server-messages"></ul>
       </p>
       <h3 id="winner"></h3>
       <button id="resetGame" class="reset-game control">Reset Game</button>
       <!-- </div> -->
     </div>
-
+    <script
+      src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+      integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+      crossorigin="anonymous"
+    ></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
       integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
       crossorigin="anonymous"
     ></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/static/map.js"></script>
-    <script src="/static/session.js"></script>
-    <script src="/static/game.js"></script>
-    <script src="/static/index.js"></script>
+    <!-- <script src="/socket.io/socket.io.js"></script> -->
+    <script src="map.js"></script>
+    <script src="session.js"></script>
+    <script src="game.js"></script>
+    <script src="index.js"></script>
+    <script src="client.js"></script>
+    <script>
+      var gameClient = new Client();
+      gameClient.connect();
+      // gameClient.addHandler("game", function (message) {
+      //   let res = message.x + " " + message.y;
+      //   var ul = document.getElementById("server-messages");
+      //   var li = document.createElement("li");
+      //   li.appendChild(document.createTextNode(res));
+      //   ul.appendChild(li);
+      // });
+    </script>
   </body>
 </html>
+

@@ -1,28 +1,4 @@
 {
-  "name": "hexipro",
-  "version": "1.0.0",
-  "description": "A little hex-y tile game!",
-  "main": "index.html",
-  "scripts": {
-    "start": "node server.js",
-    "build": "echo This is a static template, there is no bundler or bundling involved!"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/eleon479/hexipro.git"
-  },
-  "keywords": [
-    "game"
-  ],
-  "author": "Eddy Leon",
-  "license": "ISC",
-  "devDependencies": {
-    "serve": "^11.2.0"
-  },
-  "bugs": {
-    "url": "https://github.com/eleon479/hexipro/issues"
-  },
-  "homepage": "https://github.com/eleon479/hexipro#readme",
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.6.0"
