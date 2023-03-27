@@ -21,10 +21,12 @@ class Client {
 
       this.socket.emit("player:findGame", { color: this.color });
 
-      // const send = { key: "player:findGame", value: { color: this.color } };
-      // this.socket.emit(send.key, send.value);
-      // this.history.sent.push(send);
-      // this.statusText = "Socket connection created + Player initialized.";
+      /*
+      const send = { key: "player:findGame", value: { color: this.color } };
+      this.socket.emit(send.key, send.value);
+      this.history.sent.push(send);
+      this.statusText = "Socket connection created + Player initialized.";
+      */
     });
 
     this.socket.on("player.connected", (m) => {
