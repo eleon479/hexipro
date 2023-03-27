@@ -57,10 +57,10 @@ module.exports = (io, socket, context) => {
     let playerId = context.playerPool.getPlayerBySocketId(socket.id);
 
     socket.rooms.forEach((room) =>
-      io.to(room).emit("player:disconnect", playerId)
+      io.to(room).emit("player:disconnect", socket.id)
     );
   };
-
+  
   const clickTile = (event) => {
     // click tile logic
     // take in the event and perform necessary
@@ -78,6 +78,11 @@ module.exports = (io, socket, context) => {
   const endTurn = (event) => {};
 
   /*
+  @todo: 
+  
+  - break down initialize
+  - handlers:
+  
   1) :init - insert client into player pool (map socket.id <=> player.id)
     @emit playerId
     !save in localstorage for next connect
