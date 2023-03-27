@@ -18,9 +18,9 @@ class Client {
       // this.history.received.push("connect", m);
       this.addServerMessage("connect (received playerId)", this.socket.id);
       this.playerId = this.socket.id;
-
+      
       this.socket.emit("player:findGame", { color: this.color });
-
+     
       // const send = { key: "player:findGame", value: { color: this.color } };
       // this.socket.emit(send.key, send.value);
       // this.history.sent.push(send);

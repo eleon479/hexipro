@@ -60,9 +60,21 @@ module.exports = (io, socket, context) => {
       io.to(room).emit("player:disconnect", socket.id)
     );
   };
+  
+  const clickTile = (event) => {
+    // click tile logic
+    // take in the event and perform necessary
+    // changes to the state
+    // delegate to a new MapService if necessary
+  };
 
-  const clickTile = (event) => {};
-  const endAttack = (event) => {};
+  const endAttack = (event) => {
+    // have some logic check incoming event against internal server
+    // state. if time allows
+    // realistically tho:
+    // if all is good, just make sure to update the
+    // server state and have those changes propagate?
+  };
   const endTurn = (event) => {};
 
   /*
@@ -70,7 +82,7 @@ module.exports = (io, socket, context) => {
   
   - break down initialize
   - handlers:
-
+  
   1) :init - insert client into player pool (map socket.id <=> player.id)
     @emit playerId
     !save in localstorage for next connect
