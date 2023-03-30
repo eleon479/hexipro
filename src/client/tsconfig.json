@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "../../dist/client",
+    // "baseUrl": ".",
+    // "paths": {},
+    "moduleResolution": "node",
+    "strict": true
+  },
+  "include": ["**/*.ts"]
+}

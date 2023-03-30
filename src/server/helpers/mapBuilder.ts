@@ -1,5 +1,5 @@
-function getMap(columns, rows, players) {
-  let newMap = {
+export function mapBuilder(columns, rows, players) {
+  const newMap = {
     size: 50,
     columns,
     rows,
@@ -24,5 +24,3 @@ function getMap(columns, rows, players) {
 
   return newMap;
 }
-
-module.exports = { getMap };
