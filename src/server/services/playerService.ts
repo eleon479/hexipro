@@ -1,4 +1,4 @@
-import { GameRoom, Player } from '../../shared/models';
+import { GameRoom, Player } from '../types/models';
 
 export class PlayerService {
   private players: {

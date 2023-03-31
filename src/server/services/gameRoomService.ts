@@ -6,7 +6,7 @@ import {
   Game,
   Player,
   IGameRoomService,
-} from '../../shared/models';
+} from '../types/models';
 
 export class GameRoomService implements IGameRoomService {
   private gameRooms: {

@@ -1,5 +1,3 @@
-import { GameController } from './gameController';
-import { of, fromEvent, Observable } from 'rxjs';
 import {
   Player,
   GameRoom,
@@ -7,12 +5,10 @@ import {
   ClientActionType,
   ServerEventType,
   SocketEventType,
-} from '../shared/models';
-import { on } from 'events';
-import { type } from 'os';
-import { connect } from 'socket.io-client';
+} from '../server/types/models';
+import { GameController } from './gameController';
 
-export class Client {
+class Client {
   private socket: SocketIOClient.Socket;
 
   private history: {
@@ -105,7 +101,7 @@ export class Client {
 }
 
 const client = new Client();
-const gameController = new GameController();
+// const gameController = new GameController();
 
 //client.connect();
 // game.bind(client).start();

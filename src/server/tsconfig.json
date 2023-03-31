@@ -2,12 +2,9 @@
   "compilerOptions": {
     "target": "ES2019",
     "module": "commonjs",
-    "rootDir": ".",
-    "outDir": "../dist/",
+    "outDir": "../../dist/server",
     "sourceMap": true,
-    "esModuleInterop": true,
-    "baseUrl": ".",
-    "paths": {}
+    "esModuleInterop": true
   },
   "include": ["**/*.ts"]
 }

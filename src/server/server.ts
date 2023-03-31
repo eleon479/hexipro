@@ -5,7 +5,7 @@ import socketIO from 'socket.io';
 
 import { PlayerService } from './services/playerService';
 import { GameRoomService } from './services/gameRoomService';
-import { ServerContext } from '../shared/models';
+import { ServerContext } from './types/models';
 import { playerHandler } from './handlers/playerHandler';
 import { gameHandler } from './handlers/gameHandler';
 

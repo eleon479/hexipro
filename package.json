@@ -3,21 +3,25 @@
   "version": "0.3.0",
   "description": "",
   "scripts": {
-    "__dev": "concurrently -k \"tsc -p ./src/server -w\" \"tsc -p ./src/client -w\" \"nodemon ./dist/server/server.js\"",
+    "_start": "npm run build && nodemon dist/server/server.js",
     "clean": "rm -rf dist/",
-    "copy-files": "copyfiles -u 1 src/**/*.html src/**/*.css dist/",
-    "build": "npm run clean && tsc --build src && npm run copy-files",
-    "start": "npm run build && nodemon ./dist/server/server.js"
+    "copy-files": "copyfiles -u 1 src/client/**/*.html src/client/**/*.css dist/",
+    "build": "npm run clean && tsc -p ./src/server && tsc -p ./src/client && npm run copy-files",
+    "start": "npm run copy-files && concurrently -k \"tsc -p ./src/server -w\" \"tsc -p ./src/client -w\" \"nodemon ./dist/server/server.js\""
   },
   "author": "Eddy Leon",
   "license": "ISC",
   "dependencies": {
+    "bootstrap": "^5.2.3",
     "express": "^4.18.1",
+    "jquery": "3.6.4",
     "socket.io": "^4.5.1",
     "socket.io-client": "^4.5.1"
   },
   "devDependencies": {
+    "@types/bootstrap": "^5.2.6",
     "@types/express": "^4.17.13",
+    "@types/jquery": "^3.5.16",
     "@types/node": "^18.0.4",
     "@types/socket.io-client": "^1.4.36",
     "concurrently": "^7.2.2",

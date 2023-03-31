@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "CommonJS",
-    "outDir": "../../dist/client",
-    // "baseUrl": ".",
-    // "paths": {},
+    "module": "ES6",
+    "outDir": "../../dist/client/",
+    "baseUrl": ".",
+    "paths": {},
     "moduleResolution": "node",
     "strict": true
   },

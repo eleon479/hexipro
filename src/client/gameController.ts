@@ -5,9 +5,8 @@ import {
   Game,
   Player,
   Stage,
-} from '../shared/models';
-import { palette } from '../shared/palette';
-import { Client } from './client';
+} from '../server/types/models';
+import { palette } from '../server/types/palette';
 
 export class GameController {
   private gameState: Game;
@@ -16,46 +15,20 @@ export class GameController {
   private isEndTurnButtonDisabled: boolean;
 
   private board: Board;
-  private client: Client;
+  // private client: Client;
 
   constructor() {
     this.gameState = {} as Game;
     this.board = {} as Board;
-    this.client = {} as Client;
+    // this.client = {} as Client;
     this.isEndAttackButtonDisabled = true;
     this.isEndTurnButtonDisabled = true;
   }
 
-  /* 
-    @REVIEW: 
-    Should the game contain the client, 
-    or should the client contain the game?
-    Alternatively, should they both be one?
-
-    I think the client should contain the game,
-    and the game should contain the client.
-    The game should be able to send actions to the client,
-    and the client should be able to send actions to the game.
-
-    -----prev-----
-        I think the game should contain the client,
-    because the game is the one that needs to
-    send actions to the client.
-
-    The client should not need to know about the game.
-    
-    The client should only need to know about the server.
-  */
-
-  public bind(client: Client): GameController {
-    this.client = client;
-
-    // this.client.on(action, (data: any) => {
-    //   console.log(data);
-    // });
-
-    return this;
-  }
+  // public bind(client: Client): GameController {
+  //   this.client = client;
+  //   return this;
+  // }
 
   public start() {}
 
@@ -69,12 +42,7 @@ export class GameController {
     this.board.render();
   }
 
-  public handleEvent() {
-    // this.client.on('game.update', (gameState: GameState) => {
-    //   this.gameState = gameState;
-    //   this.update();
-    // });
-  }
+  public handleEvent() {}
 
   public handleAction(action: ClientAction) {
     switch (action.type) {
@@ -200,9 +168,6 @@ class CanvasTile {
     let playerFillColor = palette.background;
 
     if (this.player !== null) {
-      // let playerColor = this.player.color;
-      // playerLineColor = this.player.color;
-      // playerFillColor = this.player.color;
       playerLineColor = this.color;
       playerFillColor = this.color;
     }
@@ -240,12 +205,6 @@ class CanvasTile {
   }
 
   public handleCanvasClick = (event: any) => {
-    // if (this.ctx.isPointInPath(this.hexagon, event.offsetX, event.offsetY)) {
-    //   console.warn('clicked', this.col, this.row);
-
-    //   emit()
-    // }
-
     console.warn('clicked', event.offsetX, event.offsetY);
   };
 }

@@ -5,7 +5,7 @@ import {
   PlayerInfo,
   ServerContext,
   ServerEventType,
-} from '../../shared/models';
+} from '../types/models';
 import { Server, Socket } from 'socket.io';
 
 export const playerHandler = (
