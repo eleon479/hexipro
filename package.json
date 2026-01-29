@@ -1,8 +1,9 @@
 {
-  "name": "hexi",
-  "version": "0.3.0",
-  "description": "",
+  "name": "hexipro",
+  "version": "0.4.0",
+  "description": "Hexagonal grid strategy game",
   "scripts": {
+    "serve": "node dist/server/server.js",
     "_start": "npm run build && nodemon dist/server/server.js",
     "clean": "rm -rf dist/",
     "copy-files": "copyfiles -u 1 src/client/**/*.html src/client/**/*.css dist/",
