@@ -6,8 +6,10 @@
     "_start": "npm run build && nodemon dist/server/server.js",
     "clean": "rm -rf dist/",
     "copy-files": "copyfiles -u 1 src/client/**/*.html src/client/**/*.css dist/",
-    "build": "npm run clean && tsc -p ./src/server && tsc -p ./src/client && npm run copy-files",
-    "start": "npm run copy-files && concurrently -k \"tsc -p ./src/server -w\" \"tsc -p ./src/client -w\" \"nodemon ./dist/server/server.js\""
+    "build:server": "tsc -p ./src/server",
+    "build:client": "esbuild src/client/client.ts --bundle --outfile=dist/client/client.js --format=iife --global-name=HexiClient --external:socket.io-client",
+    "build": "npm run clean && npm run build:server && npm run build:client && npm run copy-files",
+    "start": "npm run copy-files && concurrently -k \"tsc -p ./src/server -w\" \"esbuild src/client/client.ts --bundle --outfile=dist/client/client.js --format=iife --global-name=HexiClient --external:socket.io-client --watch\" \"nodemon ./dist/server/server.js\""
   },
   "author": "Eddy Leon",
   "license": "ISC",
@@ -26,6 +28,7 @@
     "@types/socket.io-client": "^1.4.36",
     "concurrently": "^7.2.2",
     "copyfiles": "^2.4.1",
+    "esbuild": "^0.27.2",
     "nodemon": "^2.0.19",
     "rimraf": "^4.4.1",
     "typescript": "^4.7.4"

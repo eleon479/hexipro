@@ -1,12 +1,6 @@
 import { mapBuilder } from '../helpers/mapBuilder';
 import { randomUUID } from 'crypto';
-import {
-  GameMap,
-  GameRoom,
-  Game,
-  Player,
-  IGameRoomService,
-} from '../types/models';
+import { GameMap, GameRoom, Game, Player, IGameRoomService, Stage } from '../types/models';
 
 export class GameRoomService implements IGameRoomService {
   private gameRooms: {
@@ -32,8 +26,6 @@ export class GameRoomService implements IGameRoomService {
   }
 
   public gameRoomPlayerCount(roomId: string) {
-    let ESVersionTest = Object({ a: 1, b: 2, c: 3 }).keys().length;
-
     return Object.keys(this.gameRooms[roomId].players).length;
   }
 
@@ -60,7 +52,7 @@ export class GameRoomService implements IGameRoomService {
   public addPlayer(roomId: string, player: Player): GameRoom {
     // const gameRoom = this.gameRooms[roomId];
     this.gameRooms[roomId].players[player.id] = player;
-    const playerCount = Object(this.gameRooms[roomId].players).keys().length;
+    const playerCount = Object.keys(this.gameRooms[roomId].players).length;
 
     if (playerCount >= this.maxPlayerCount) {
       console.log('addPlayer -> max player count reached');
@@ -77,11 +69,20 @@ export class GameRoomService implements IGameRoomService {
   }
 
   public createMap(roomId: string): GameRoom {
+    const room = this.gameRooms[roomId];
+    const playerIds = Object.keys(room.players);
+    const firstPlayer = room.players[playerIds[0]];
+
     return (this.gameRooms[roomId] = {
-      ...this.gameRooms[roomId],
+      ...room,
       gameState: {
-        ...this.gameRooms[roomId].gameState,
-        map: mapBuilder(5, 4, this.gameRooms[roomId].players),
+        map: mapBuilder(5, 4, room.players),
+        stage: Stage.Attack,
+        currentPlayer: firstPlayer,
+        currentAttackNodeSelected: false,
+        currentAttackNodeColumn: -1,
+        currentAttackNodeRow: -1,
+        currentAttackNodePower: 0,
       },
     });
   }
